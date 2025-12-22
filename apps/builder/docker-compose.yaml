@@ -1,0 +1,33 @@
+version: "3.1"
+
+volumes:
+  db:
+
+services:
+  db:
+    image: postgres
+    # Uncomment to log all queries
+    command: ["postgres", "-c", "log_statement=all"]
+    restart: always
+    environment:
+      # postgresql://user:pass@localhost:5432/webstudio
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: webstudio
+      POSTGRES_USER: user
+    volumes:
+      - db:/var/lib/postgresql
+    ports:
+      - ${PGPORT:-5433}:5432
+
+  postgrest:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://user:pass@db:5432/webstudio
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: user
+      PGRST_JWT_SECRET: "myverysecuresecretthatisatleast32characterslong"
+    depends_on:
+      - db
+
