@@ -15,19 +15,6 @@ services:
       POSTGRES_DB: webstudio
       POSTGRES_USER: user
     volumes:
-      - db:/var/lib/postgresql
+      - db:/var/lib/postgresql/data
     ports:
-      - ${PGPORT:-5433}:5432
-
-  postgrest:
-    image: postgrest/postgrest
-    ports:
-      - "3000:3000"
-    environment:
-      PGRST_DB_URI: postgres://user:pass@db:5432/webstudio
-      PGRST_DB_SCHEMA: public
-      PGRST_DB_ANON_ROLE: user
-      PGRST_JWT_SECRET: "myverysecuresecretthatisatleast32characterslong"
-    depends_on:
-      - db
-
+      - ${PGPORT:-5432}:5432

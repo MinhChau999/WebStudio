@@ -16,6 +16,7 @@ _build
 .vercel
 .output
 .netlify
+.claude
 
 # misc
 .DS_Store

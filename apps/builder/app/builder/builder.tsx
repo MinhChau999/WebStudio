@@ -390,6 +390,8 @@ export const Builder = ({
             }}
           />
           <ProjectSettings />
+
+          {/* Main must be after left sidebar panels because in content mode the Plus button must be above the left sidebar, otherwise it won't be visible when content is full width */}
           <Main>
             <Workspace>
               {dataLoadingState === "loaded" && project && (
@@ -404,6 +406,14 @@ export const Builder = ({
           <Main css={{ pointerEvents: "none" }}>
             <CanvasToolsContainer />
           </Main>
+          <SidePanel
+            gridArea="sidebar"
+            css={{
+              order: navigatorLayout === "docked" ? 1 : undefined,
+            }}
+          >
+            <SidebarLeft publish={publish} />
+          </SidePanel>
 
           <SidePanel
             gridArea="inspector"
@@ -423,14 +433,6 @@ export const Builder = ({
             }}
           >
             <Inspector navigatorLayout={navigatorLayout} />
-          </SidePanel>
-          <SidePanel
-            gridArea="sidebar"
-            css={{
-              order: navigatorLayout === "docked" ? 1 : undefined,
-            }}
-          >
-            <SidebarLeft publish={publish} />
           </SidePanel>
           {project ? (
             <Topbar

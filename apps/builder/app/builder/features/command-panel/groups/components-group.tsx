@@ -147,8 +147,10 @@ export const ComponentsGroup = ({
   return (
     <CommandGroup
       name="component"
-      heading={<CommandGroupHeading>Components</CommandGroupHeading>}
-      actions={["add"]}
+      heading={
+        <CommandGroupHeading>Components ({options.length})</CommandGroupHeading>
+      }
+      actions={[{ name: "add", label: "Add" }]}
     >
       {options.map(({ component, label, category, icon, firstInstance }) => {
         return (
@@ -172,7 +174,7 @@ export const ComponentsGroup = ({
               <CommandIcon>
                 <InstanceIcon instance={firstInstance} icon={icon} />
               </CommandIcon>
-              <Text variant="labelsTitleCase">
+              <Text>
                 {label}{" "}
                 <Text as="span" color="moreSubtle">
                   {humanizeString(category)}
