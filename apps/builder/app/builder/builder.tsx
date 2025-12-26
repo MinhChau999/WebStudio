@@ -44,7 +44,6 @@ import {
 } from "~/shared/nano-states";
 import { $settings, type Settings } from "./shared/client-settings";
 import { builderUrl, getCanvasUrl } from "~/shared/router-utils";
-import { BlockingAlerts } from "./features/blocking-alerts";
 import { useSyncPageUrl } from "~/shared/pages";
 import { useMount, useUnmount } from "~/shared/hook-utils/use-mount";
 import { subscribeCommands } from "~/builder/shared/commands";
@@ -66,7 +65,6 @@ import { mergeRefs } from "@react-aria/utils";
 import { DeleteUnusedTokensDialog } from "~/builder/shared/style-source-actions";
 import { DeleteUnusedDataVariablesDialog } from "~/builder/shared/data-variable-utils";
 import { DeleteUnusedCssVariablesDialog } from "~/builder/shared/css-variable-utils";
-import { KeyboardShortcutsDialog } from "./features/keyboard-shortcuts-dialog";
 import { TokenConflictDialog } from "~/shared/token-conflict-dialog";
 
 import {
@@ -75,7 +73,6 @@ import {
 } from "~/shared/copy-paste/init-copy-paste";
 import { useInertHandlers } from "./shared/inert-handlers";
 import { TextToolbar } from "./features/workspace/canvas-tools/text-toolbar";
-import { RemoteDialog } from "./features/help/remote-dialog";
 import type { SidebarPanelName } from "./sidebar-left/types";
 import { SidebarLeft } from "./sidebar-left/sidebar-left";
 import { useDisableContextMenu } from "./shared/use-disable-context-menu";
@@ -474,13 +471,10 @@ export const Builder = ({
           ) : null}
         </ChromeWrapper>
         <Loading state={loadingState} />
-        <BlockingAlerts />
         <DeleteUnusedTokensDialog />
         <DeleteUnusedDataVariablesDialog />
         <DeleteUnusedCssVariablesDialog />
-        <KeyboardShortcutsDialog />
         <TokenConflictDialog />
-        <RemoteDialog />
       </div>
     </TooltipProvider>
   );

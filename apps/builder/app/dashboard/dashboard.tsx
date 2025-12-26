@@ -9,9 +9,7 @@ import {
   css,
   globalCss,
   theme,
-  PanelBanner,
   Link,
-  buttonStyle,
 } from "@webstudio-is/design-system";
 import { BodyIcon, ExtensionIcon } from "@webstudio-is/icons";
 import { NavLink, useLocation, useRevalidator } from "@remix-run/react";
@@ -24,7 +22,6 @@ import { ProfileMenu } from "./profile-menu";
 import { Projects } from "./projects/projects";
 import { Templates } from "./templates/templates";
 import { Header } from "./shared/layout";
-import { help } from "~/shared/help";
 import { SearchResults } from "./search/search-results";
 import type { DashboardData } from "./shared/types";
 import { Search } from "./search/search-field";
@@ -222,35 +219,7 @@ export const Dashboard = () => {
                 }
               />
             </CollapsibleSection>
-            <CollapsibleSection label="Help & support" fullWidth>
-              <NavigationItems
-                items={help.map((item) => ({
-                  to: item.url,
-                  target: "_blank",
-                  prefix: item.icon,
-                  children: item.label,
-                }))}
-              />
-            </CollapsibleSection>
           </nav>
-          <PanelBanner>
-            <Text variant="titles">Inception is live</Text>
-            <Text color="subtle">
-              An AI-powered design tool to explore ideas and instantly generate
-              HTML/CSS for Webstudio Builder or any other platform.
-            </Text>
-            <Link
-              className={buttonStyle({
-                color: "gradient",
-              })}
-              underline="none"
-              href="https://wstd.us/inception"
-              target="_blank"
-              color="contrast"
-            >
-              Get started with Inception
-            </Link>
-          </PanelBanner>
         </Flex>
         {view === "projects" && (
           <Projects

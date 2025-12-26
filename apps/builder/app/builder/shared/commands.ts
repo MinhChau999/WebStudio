@@ -46,7 +46,6 @@ import { isSyncIdle } from "~/shared/sync/project-queue";
 import { openDeleteUnusedTokensDialog } from "~/builder/shared/style-source-actions";
 import { openDeleteUnusedDataVariablesDialog } from "~/builder/shared/data-variable-utils";
 import { openDeleteUnusedCssVariablesDialog } from "~/builder/shared/css-variable-utils";
-import { openKeyboardShortcutsDialog } from "~/builder/features/keyboard-shortcuts-dialog";
 import {
   copyInstance,
   emitPaste,
@@ -530,17 +529,6 @@ export const { emitCommand, subscribeCommands } = createCommandsEmitter({
       description: "Remove unused CSS variables",
       handler: () => {
         openDeleteUnusedCssVariablesDialog();
-      },
-    },
-
-    {
-      name: "openKeyboardShortcuts",
-      description: "View keyboard shortcuts",
-      category: "General",
-      defaultHotkeys: ["shift+?"],
-      disableOnInputLikeControls: true,
-      handler: () => {
-        openKeyboardShortcutsDialog();
       },
     },
   ],
