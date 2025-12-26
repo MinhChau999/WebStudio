@@ -102,6 +102,7 @@ export const useSyncPageUrl = () => {
 
     navigate(
       builderPath({
+        projectId: project.id,
         pageId: page.id === pages.homePage.id ? undefined : page.id,
         authToken: $authToken.get(),
         pageHash: pageHash.hash === "" ? undefined : pageHash.hash,

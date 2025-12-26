@@ -6,7 +6,7 @@ import {
 import { instanceText, instanceJson } from "./plugin-instance";
 import { html } from "./plugin-html";
 import { markdown } from "./plugin-markdown";
-import { webflow } from "./plugin-webflow/plugin-webflow";
+// webflow plugin removed - no longer needed for simplified setup
 import { builderApi } from "../builder-api";
 
 const isTextEditing = (event: ClipboardEvent) => {
@@ -134,7 +134,7 @@ const initPlugins = ({
 
 export const initCopyPaste = ({ signal }: { signal: AbortSignal }) => {
   initPlugins({
-    plugins: [instanceJson, instanceText, html, markdown, webflow],
+    plugins: [instanceJson, instanceText, html, markdown],
     signal,
   });
 };

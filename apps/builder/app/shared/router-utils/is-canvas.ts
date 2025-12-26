@@ -1,23 +1,19 @@
 import { isBuilderUrl } from "./origins";
 
 export const isBuilder = (request: Request): boolean => {
-  return isBuilderUrl(request.url) && false === isCanvas(request);
+  const url = new URL(request.url);
+  return url.pathname.startsWith("/editor/");
 };
 
 export const isCanvas = (request: Request): boolean => {
   const url = new URL(request.url);
-  if (isBuilderUrl(url.origin) && url.pathname === "/canvas") {
-    return true;
-  }
-
-  return false;
+  // Check if pathname is /canvas and origin is builder URL
+  return url.pathname === "/canvas" && isBuilderUrl(url.origin);
 };
 
 export const isDashboard = (request: Request): boolean => {
-  if (isBuilder(request) || isCanvas(request)) {
-    return false;
-  }
-  return true;
+  const url = new URL(request.url);
+  return url.pathname === "/" || url.pathname === "/dashboard";
 };
 
 export const comparePathnames = (

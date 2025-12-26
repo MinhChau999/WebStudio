@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { matchSorter } from "match-sorter";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "@remix-run/react";
 import { Flex, Separator, Text, theme } from "@webstudio-is/design-system";
 import type { DashboardProject } from "@webstudio-is/dashboard";
 import { ProjectsGrid } from "../projects/projects";

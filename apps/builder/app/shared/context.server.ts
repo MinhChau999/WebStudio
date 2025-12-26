@@ -1,17 +1,13 @@
 import { type AppContext } from "@webstudio-is/trpc-interface/index.server";
 import env from "~/env/env.server";
-import { authenticator } from "~/services/auth.server";
 import { trpcSharedClient } from "~/services/trpc.server";
 import { entryApi } from "./entri/entri-api.server";
 
 import { getUserPlanFeatures } from "./db/user-plan-features.server";
+import { createOrLoginWithDev } from "./db/user.server";
 import { staticEnv } from "~/env/env.static.server";
 import { createClient } from "@webstudio-is/postrest/index.server";
-import { builderAuthenticator } from "~/services/builder-auth.server";
-import { readLoginSessionBloomFilter } from "~/services/session.server";
-import type { BloomFilter } from "~/services/bloom-filter.server";
-import { isBuilder, isCanvas } from "./router-utils";
-import { parseBuilderUrl } from "@webstudio-is/http-client";
+import { isCanvas } from "./router-utils";
 
 export const extractAuthFromRequest = async (request: Request) => {
   if (isCanvas(request)) {
@@ -24,17 +20,13 @@ export const extractAuthFromRequest = async (request: Request) => {
     request.headers.get("x-auth-token") ??
     undefined;
 
-  const sessionData = isBuilder(request)
-    ? await builderAuthenticator.isAuthenticated(request)
-    : await authenticator.isAuthenticated(request);
-
   const isServiceCall =
     request.headers.has("Authorization") &&
     request.headers.get("Authorization") === env.TRPC_SERVER_API_TOKEN;
 
   return {
     authToken,
-    sessionData,
+    sessionData: undefined,
     isServiceCall,
   };
 };
@@ -71,8 +63,7 @@ const createAuthorizationContext = async (
   request: Request,
   postgrest: AppContext["postgrest"]
 ): Promise<AppContext["authorization"]> => {
-  const { authToken, isServiceCall, sessionData } =
-    await extractAuthFromRequest(request);
+  const { authToken, isServiceCall } = await extractAuthFromRequest(request);
 
   if (isServiceCall) {
     return {
@@ -85,40 +76,24 @@ const createAuthorizationContext = async (
     return await createTokenAuthorizationContext(authToken, postgrest);
   }
 
-  if (sessionData?.userId != null) {
-    const userId = sessionData.userId;
-
-    let loginBloomFilter: BloomFilter | undefined = undefined;
-
-    let isLoggedInToBuilder = async (projectId: string) => {
-      if (loginBloomFilter === undefined) {
-        loginBloomFilter = await readLoginSessionBloomFilter(request);
-      }
-
-      return loginBloomFilter.has(projectId);
-    };
-
-    if (isBuilder(request)) {
-      isLoggedInToBuilder = async (projectId: string) => {
-        const parsedUrl = parseBuilderUrl(request.url);
-        return parsedUrl.projectId === projectId;
-      };
-    }
-
-    return {
-      type: "user",
-      userId,
-      sessionCreatedAt: sessionData.createdAt,
-      isLoggedInToBuilder,
-    };
-  }
-
-  return { type: "anonymous" };
+  // Simplified setup: auto-login as dev user
+  // We cast to any because createOrLoginWithDev expects AppContext but only uses postgrest
+  const user = await createOrLoginWithDev(
+    { postgrest } as any,
+    "dev@localhost"
+  );
+  return {
+    type: "user",
+    userId: user.id,
+    sessionCreatedAt: Date.now(),
+    isLoggedInToBuilder: async () => true,
+  };
 };
 
 const createDomainContext = () => {
+  // Domain features removed for simplified local setup
   const context: AppContext["domain"] = {
-    domainTrpc: trpcSharedClient.domain,
+    domainTrpc: undefined as any,
   };
 
   return context;

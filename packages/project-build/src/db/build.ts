@@ -6,7 +6,7 @@ import {
   authorizeProject,
   type AppContext,
 } from "@webstudio-is/trpc-interface/index.server";
-import { db as authDb } from "@webstudio-is/authorization-token/index.server";
+// Simplified: No authentication - single admin setup
 import type {
   Deployment,
   Resource,
@@ -236,31 +236,8 @@ export const createProductionBuild = async (
   },
   context: AppContext
 ) => {
-  const canBuild = await authorizeProject.hasProjectPermit(
-    { projectId: props.projectId, permit: "edit" },
-    context
-  );
-
-  if (canBuild === false) {
-    throw new AuthorizationError("You don't have access to build this project");
-  }
-
-  // Get token permissions
-  if (context.authorization.type === "token") {
-    const permissions = await authDb.getTokenPermissions(
-      {
-        projectId: props.projectId,
-        token: context.authorization.authToken,
-      },
-      context
-    );
-
-    if (!permissions.canPublish) {
-      throw new AuthorizationError(
-        "The token does not have permission to build this project."
-      );
-    }
-  }
+  // Simplified: Skip authorization checks for single-admin setup
+  // Original authorization checks removed since we don't use tokens
 
   const build = await context.postgrest.client.rpc("create_production_build", {
     project_id: props.projectId,

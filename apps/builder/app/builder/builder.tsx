@@ -11,6 +11,12 @@ import {
 } from "@webstudio-is/design-system";
 import type { AuthPermit } from "@webstudio-is/trpc-interface/index.server";
 import { initializeClientSync, getSyncClient } from "~/shared/sync/sync-client";
+
+// Simple permission type for single-admin setup
+type TokenPermissions = {
+  canEdit: boolean;
+  canBuild: boolean;
+};
 import { usePreventUnload } from "~/shared/sync/project-queue";
 import { usePublish, $publisher } from "~/shared/pubsub";
 import { Inspector } from "./inspector";
@@ -51,14 +57,12 @@ import {
   $loadingState,
 } from "./shared/nano-states";
 import { CloneProjectDialog } from "~/shared/clone-project";
-import type { TokenPermissions } from "@webstudio-is/authorization-token";
 import { useToastErrors } from "~/shared/error/toast-error";
 import { initBuilderApi } from "~/shared/builder-api";
 import { updateWebstudioData } from "~/shared/instance-utils";
 import { migrateWebstudioDataMutable } from "~/shared/webstudio-data-migrator";
 import { Loading, LoadingBackground } from "./shared/loading";
 import { mergeRefs } from "@react-aria/utils";
-import { CommandPanel } from "./features/command-panel";
 import { DeleteUnusedTokensDialog } from "~/builder/shared/style-source-actions";
 import { DeleteUnusedDataVariablesDialog } from "~/builder/shared/data-variable-utils";
 import { DeleteUnusedCssVariablesDialog } from "~/builder/shared/css-variable-utils";
@@ -471,7 +475,6 @@ export const Builder = ({
         </ChromeWrapper>
         <Loading state={loadingState} />
         <BlockingAlerts />
-        <CommandPanel />
         <DeleteUnusedTokensDialog />
         <DeleteUnusedDataVariablesDialog />
         <DeleteUnusedCssVariablesDialog />

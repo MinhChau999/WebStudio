@@ -1,4 +1,4 @@
-import { useRevalidator, useSearchParams } from "react-router-dom";
+import { useRevalidator, useSearchParams } from "@remix-run/react";
 import { useState, type ComponentProps } from "react";
 import {
   Text,

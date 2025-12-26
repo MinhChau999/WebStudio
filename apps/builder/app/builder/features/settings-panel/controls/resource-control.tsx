@@ -9,7 +9,6 @@ import {
   type ComponentProps,
 } from "react";
 import { useStore } from "@nanostores/react";
-import { isFeatureEnabled } from "@webstudio-is/feature-flags";
 import { GearIcon } from "@webstudio-is/icons";
 import {
   EnhancedTooltip,
@@ -308,13 +307,12 @@ export const ResourceControl = ({
           onBlur={localValue.save}
           onSubmit={localValue.save}
           suffix={
-            isFeatureEnabled("resourceProp") && (
-              <ResourceControlPanel
-                resource={resource}
-                propName={propName}
-                onChange={updateResource}
-              />
-            )
+            // All features enabled in simplified setup
+            <ResourceControlPanel
+              resource={resource}
+              propName={propName}
+              onChange={updateResource}
+            />
           }
         />
         <BindingPopover

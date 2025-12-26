@@ -35,9 +35,7 @@ import {
   toggleActiveSidebarPanel,
 } from "./nano-states";
 import { $selectedInstancePath, selectInstance } from "~/shared/awareness";
-import { openCommandPanel } from "../features/command-panel";
-import { showWrapComponentsList } from "../features/command-panel/groups/wrap-group";
-import { showConvertComponentsList } from "../features/command-panel/groups/convert-group";
+// Command panel removed - commands simplified
 import { builderApi } from "~/shared/builder-api";
 import { getSetting, setSetting } from "./client-settings";
 import { findAvailableVariables } from "~/shared/data-variables";
@@ -402,9 +400,11 @@ export const { emitCommand, subscribeCommands } = createCommandsEmitter({
       description: "Wrap",
       category: "Navigator",
       defaultHotkeys: ["meta+alt+g", "ctrl+alt+g"],
-      keepCommandPanelOpen: true,
+      // Command panel removed - wrap feature simplified
       handler: () => {
-        showWrapComponentsList();
+        builderApi.toast.info(
+          "Wrap feature is currently disabled in simplified mode"
+        );
       },
     },
     {
@@ -419,9 +419,11 @@ export const { emitCommand, subscribeCommands } = createCommandsEmitter({
       label: "Convert",
       description: "Convert component",
       category: "Navigator",
-      keepCommandPanelOpen: true,
+      // Command panel removed - convert feature simplified
       handler: () => {
-        showConvertComponentsList();
+        builderApi.toast.info(
+          "Convert feature is currently disabled in simplified mode"
+        );
       },
     },
 
@@ -486,10 +488,9 @@ export const { emitCommand, subscribeCommands } = createCommandsEmitter({
       description: "Open command panel",
       category: "General",
       defaultHotkeys: ["meta+k", "ctrl+k"],
+      // Command panel removed - disabled in simplified mode
       handler: () => {
-        if ($isDesignMode.get()) {
-          openCommandPanel();
-        }
+        builderApi.toast.info("Command panel is disabled in simplified mode");
       },
     },
 
@@ -506,13 +507,11 @@ export const { emitCommand, subscribeCommands } = createCommandsEmitter({
       name: "findDuplicateTokens",
       label: "Find duplicate tokens",
       description: "Find tokens with identical styles or names",
+      // Command panel removed - duplicate tokens feature simplified
       handler: () => {
-        // Import needed to avoid circular dependency
-        import(
-          "~/builder/features/command-panel/groups/duplicate-tokens-group"
-        ).then(({ showDuplicateTokensView }) => {
-          showDuplicateTokensView();
-        });
+        builderApi.toast.info(
+          "Duplicate tokens feature is disabled in simplified mode"
+        );
       },
     },
 

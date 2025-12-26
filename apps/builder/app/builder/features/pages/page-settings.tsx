@@ -94,7 +94,7 @@ import { useUnmount } from "~/shared/hook-utils/use-mount";
 import { selectInstance } from "~/shared/awareness";
 import { computeExpression } from "~/shared/data-variables";
 import { $currentSystem } from "~/shared/system";
-import { Card } from "../marketplace/card";
+// Marketplace card removed for simplified setup
 import { ImageInfo } from "./image-info";
 import { SearchPreview } from "./search-preview";
 import { SocialPreview } from "./social-preview";
@@ -622,6 +622,7 @@ const MarketplaceSection = ({
       )}
       <Grid gap={1}>
         <Label>Marketplace Preview</Label>
+        {/* Marketplace preview removed for simplified setup */}
         <Box
           css={{
             padding: theme.spacing[5],
@@ -632,10 +633,7 @@ const MarketplaceSection = ({
         >
           <Grid gap={1} css={{ width: theme.spacing[30] }}>
             {category && <Label text="title">{category}</Label>}
-            <Card
-              title={values.name}
-              image={thumbnailAsset ?? thumnailFallbackAsset}
-            />
+            <Text>Marketplace preview is disabled in simplified mode.</Text>
           </Grid>
         </Box>
       </Grid>

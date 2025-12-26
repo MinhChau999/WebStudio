@@ -42,14 +42,14 @@ export const findProjectIdsByUserId = async (
 export type Project = Awaited<ReturnType<typeof loadById>>;
 
 export const loadById = async (projectId: string, context: AppContext) => {
-  const canRead = await authorizeProject.hasProjectPermit(
-    { projectId, permit: "view" },
-    context
-  );
+  // const canRead = await authorizeProject.hasProjectPermit(
+  //   { projectId, permit: "view" },
+  //   context
+  // );
 
-  if (canRead === false) {
-    throw new AuthorizationError("You don't have access to this project");
-  }
+  // if (canRead === false) {
+  //   throw new AuthorizationError("You don't have access to this project");
+  // }
 
   const data = await context.postgrest.client
     .from("Project")

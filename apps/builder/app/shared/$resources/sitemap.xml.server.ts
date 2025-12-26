@@ -1,7 +1,6 @@
 import { json } from "@remix-run/server-runtime";
 import { parsePages } from "@webstudio-is/project-build/index.server";
 import { getStaticSiteMapXml } from "@webstudio-is/sdk";
-import { parseBuilderUrl } from "@webstudio-is/http-client";
 import { isBuilder } from "../router-utils";
 import { createContext } from "../context.server";
 
@@ -16,7 +15,10 @@ export const loader = async ({ request }: { request: Request }) => {
     throw new Error("Only builder requests are allowed");
   }
 
-  const { projectId } = parseBuilderUrl(request.url);
+  // Extract projectId from /editor/:projectId path
+  const url = new URL(request.url);
+  const pathMatch = url.pathname.match(/^\/editor\/([^/]+)$/);
+  const projectId = pathMatch?.[1];
 
   if (projectId === undefined) {
     throw new Error("projectId is required");

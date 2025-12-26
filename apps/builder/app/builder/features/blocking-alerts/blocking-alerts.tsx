@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Alert } from "./alert";
 import { useWindowResizeDebounced } from "~/shared/dom-hooks";
-import { isFeatureEnabled } from "@webstudio-is/feature-flags";
 import { Link } from "@webstudio-is/design-system";
 import { $isPreviewMode } from "~/shared/nano-states";
 import { useStore } from "@nanostores/react";
@@ -27,7 +26,8 @@ const useTooSmallMessage = () => {
 const useUnsupportedBrowser = () => {
   const [message, setMessage] = useState<ReactNode>();
   useEffect(() => {
-    if ("chrome" in window || isFeatureEnabled("unsupportedBrowsers")) {
+    // Only Chrome browsers supported in simplified setup
+    if ("chrome" in window) {
       return;
     }
 

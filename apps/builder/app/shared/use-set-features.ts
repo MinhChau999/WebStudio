@@ -1,20 +1,12 @@
-import { useSearchParams } from "@remix-run/react";
-import { parse, readLocal, setLocal } from "@webstudio-is/feature-flags";
 import { useEffect } from "react";
 
-// Allows to set feature flags via URL parameter features=name1,name2,name3
+/**
+ * Simplified feature flags - all features enabled for single-admin setup
+ * URL parameter features no longer supported after removing feature-flags package
+ */
 export const useSetFeatures = () => {
-  const [searchParams] = useSearchParams();
   useEffect(() => {
-    const features = searchParams.get("features");
-    if (features) {
-      const currentFlags = readLocal();
-      for (const flag of parse(features)) {
-        if (currentFlags.includes(flag) === false) {
-          currentFlags.push(flag);
-        }
-      }
-      setLocal(currentFlags.join(","));
-    }
-  }, [searchParams]);
+    // All features are enabled by default in simplified setup
+    // No need to parse URL parameters or manage feature flags
+  }, []);
 };

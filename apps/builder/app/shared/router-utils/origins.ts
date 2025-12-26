@@ -1,25 +1,28 @@
-import { parseBuilderUrl } from "@webstudio-is/http-client";
+/**
+ * Simplified origin utilities for local development
+ */
 
 export const getRequestOrigin = (urlStr: string) => {
   const url = new URL(urlStr);
-
   return url.origin;
 };
 
-export const isCanvas = (urlStr: string): boolean => {
+export const isBuilderUrl = (urlStr: string): boolean => {
   const url = new URL(urlStr);
-  const projectId = url.searchParams.get("projectId");
-
-  return projectId !== null;
+  // For local development, check if it's our local builder origin
+  // or if pathname contains /editor/
+  const isLocalBuilder =
+    url.hostname === "vite.wstd.dev" ||
+    url.hostname === "wstd.dev" ||
+    url.hostname === "localhost";
+  return isLocalBuilder || url.pathname.startsWith("/editor/");
 };
 
-export const isBuilderUrl = (urlStr: string): boolean => {
-  const { projectId } = parseBuilderUrl(urlStr);
-  return projectId !== undefined;
+export const isCanvasUrl = (urlStr: string): boolean => {
+  // Canvas removed for simplified setup
+  return false;
 };
 
 export const getAuthorizationServerOrigin = (urlStr: string): string => {
-  const origin = getRequestOrigin(urlStr);
-  const { sourceOrigin } = parseBuilderUrl(origin);
-  return sourceOrigin;
+  return getRequestOrigin(urlStr);
 };

@@ -19,7 +19,7 @@ import {
 import { PlusIcon } from "@webstudio-is/icons";
 import { Title } from "@webstudio-is/project";
 import { builderUrl } from "~/shared/router-utils";
-import { ShareProjectContainer } from "~/shared/share-project";
+// Share project removed for simplified setup
 import { trpcClient } from "~/shared/trpc/trpc-client";
 import type { DashboardProject } from "@webstudio-is/dashboard";
 import {
@@ -35,7 +35,7 @@ import {
 } from "~/shared/sync/sync-client";
 import { $userPlanFeatures } from "~/shared/nano-states";
 
-export type DialogType = "rename" | "delete" | "share" | "tags" | "settings";
+export type DialogType = "rename" | "delete" | "tags" | "settings";
 
 type DialogProps = {
   title: string;
@@ -385,23 +385,8 @@ export const useDuplicateProject = (projectId: string) => {
   };
 };
 
-export const ShareProjectDialog = ({
-  isOpen,
-  onOpenChange,
-  projectId,
-  hasProPlan,
-}: {
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  projectId: string;
-  hasProPlan: boolean;
-}) => {
-  return (
-    <Dialog title="Share Project" isOpen={isOpen} onOpenChange={onOpenChange}>
-      <ShareProjectContainer hasProPlan={hasProPlan} projectId={projectId} />
-    </Dialog>
-  );
-};
+// Share project dialog removed for simplified setup
+export const ShareProjectDialog = () => null;
 
 /**
  * Container component that manages data loading for ProjectSettingsDialog.
@@ -482,6 +467,7 @@ type ProjectDialogsProps = {
   onHiddenChange: (isHidden: boolean) => void;
   userPlanFeatures: UserPlanFeatures;
   projectsTags: User["projectsTags"];
+  hasProPlan: boolean; // Added but unused in simplified setup
 };
 
 /**
@@ -496,6 +482,7 @@ export const ProjectDialogs = ({
   onHiddenChange,
   userPlanFeatures,
   projectsTags,
+  hasProPlan, // Unused in simplified setup
 }: ProjectDialogsProps) => {
   const projectTagsIds = (tags || [])
     .map((tagId) => {
@@ -519,12 +506,7 @@ export const ProjectDialogs = ({
         title={title}
         projectId={projectId}
       />
-      <ShareProjectDialog
-        isOpen={openDialog === "share"}
-        onOpenChange={(open) => onOpenDialogChange(open ? "share" : undefined)}
-        projectId={projectId}
-        hasProPlan={userPlanFeatures.hasProPlan}
-      />
+      {/* ShareProjectDialog removed for simplified setup */}
       <TagsDialog
         projectId={projectId}
         projectsTags={projectsTags}

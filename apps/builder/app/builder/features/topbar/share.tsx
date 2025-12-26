@@ -8,8 +8,9 @@ import {
   Tooltip,
   rawTheme,
   Popover,
+  Text,
 } from "@webstudio-is/design-system";
-import { ShareProjectContainer } from "~/shared/share-project";
+// Share project removed for simplified setup
 import { $authPermit } from "~/shared/nano-states";
 import { $isShareDialogOpen } from "~/builder/shared/nano-states";
 
@@ -50,7 +51,10 @@ export const ShareButton = ({
         sideOffset={Number.parseFloat(rawTheme.spacing[8])}
         css={{ marginRight: theme.spacing[3] }}
       >
-        <ShareProjectContainer projectId={projectId} hasProPlan={hasProPlan} />
+        <Text>
+          Sharing is disabled in simplified mode. For internal use, projects are
+          always accessible to admin users.
+        </Text>
         <PopoverTitle>Share</PopoverTitle>
       </PopoverContent>
     </Popover>

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { matchSorter } from "match-sorter";
 import { computed } from "nanostores";
 import { useStore } from "@nanostores/react";
-import { isFeatureEnabled } from "@webstudio-is/feature-flags";
 import {
   type WsComponentMeta,
   componentCategories,
@@ -127,10 +126,8 @@ const filterAndGroupComponents = ({
       return false;
     }
 
-    if (
-      isFeatureEnabled("internalComponents") === false &&
-      category === "internal"
-    ) {
+    // All features enabled in simplified setup
+    if (category === "internal") {
       return false;
     }
 

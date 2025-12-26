@@ -1,20 +1,12 @@
-import {
-  Button,
-  Flex,
-  InputField,
-  Label,
-  Separator,
-  theme,
-  Text,
-  Grid,
-  toast,
-} from "@webstudio-is/design-system";
-import { validateDomain } from "@webstudio-is/domain";
+/**
+ * Add domain component - simplified for local development
+ * Domain features are disabled in simplified setup
+ */
+
+import { Button, Flex, Grid } from "@webstudio-is/design-system";
 import type { Project } from "@webstudio-is/project";
-import { useId, useOptimistic, useRef, useState } from "react";
 import { TerminalIcon } from "@webstudio-is/icons";
-import { nativeClient } from "~/shared/trpc/trpc-client";
-import { extractCname } from "./cname";
+import { builderApi } from "~/shared/builder-api";
 
 type DomainsAddProps = {
   projectId: Project["id"];
@@ -23,133 +15,33 @@ type DomainsAddProps = {
   refresh: () => Promise<void>;
 };
 
-export const AddDomain = ({
-  projectId,
-  onCreate,
-  refresh,
-  onExportClick,
-}: DomainsAddProps) => {
-  const id = useId();
-  const [isOpen, setIsOpen] = useState(false);
-  const [error, setError] = useState<string>();
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [isPending, setIsPendingOptimistic] = useOptimistic(false);
-
-  const handleCreateDomain = async (formData: FormData) => {
-    // Will be automatically reset on action end
-    setIsPendingOptimistic(true);
-
-    let domain = formData.get("domain")?.toString() ?? "";
-    const validationResult = validateDomain(domain);
-
-    if (validationResult.success === false) {
-      setError(validationResult.error);
-      return;
-    }
-
-    // detect provider only when root domain is specified
-    if (extractCname(domain) === "@") {
-      const registrar = await nativeClient.domain.findDomainRegistrar.query({
-        domain,
-      });
-      // enforce www subdomain when no support for cname flattening
-      // and root cname can conflict with MX or NS
-      if (registrar.known && !registrar.cnameFlattening) {
-        domain = `www.${domain}`;
-      }
-    }
-
-    const result = await nativeClient.domain.create.mutate({
-      domain,
-      projectId,
-    });
-
-    if (result.success === false) {
-      toast.error(result.error);
-      setError(result.error);
-      return;
-    }
-
-    onCreate(domain);
-
-    await refresh();
-
-    setIsOpen(false);
+export const AddDomain = ({ onExportClick }: DomainsAddProps) => {
+  const handleAddDomain = () => {
+    builderApi.toast.info(
+      "Custom domains are not available in simplified local mode"
+    );
   };
 
   return (
-    <>
-      <Flex
-        gap={2}
-        shrink={false}
-        direction={"column"}
-        onKeyDown={(event) => {
-          if (event.key === "Escape") {
-            setIsOpen(false);
-            event.preventDefault();
-          }
-        }}
-      >
-        {isOpen && (
-          <>
-            <Label htmlFor={id} text="title">
-              New Domain
-            </Label>
-            <InputField
-              id={id}
-              name="domain"
-              autoFocus
-              placeholder="your-domain.com"
-              disabled={isPending}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  buttonRef.current
-                    ?.closest("form")
-                    ?.requestSubmit(buttonRef.current);
-                }
-                if (event.key === "Escape") {
-                  setIsOpen(false);
-                  event.preventDefault();
-                }
-              }}
-              color={error !== undefined ? "error" : undefined}
-            />
-            {error !== undefined && (
-              <>
-                <Text color="destructive">{error}</Text>
-              </>
-            )}
-          </>
-        )}
+    <Flex gap={2} shrink={false} direction={"column"}>
+      <Grid gap={2} columns={2}>
+        <Button
+          formAction={handleAddDomain}
+          color={"neutral"}
+          onClick={handleAddDomain}
+        >
+          Add a new domain
+        </Button>
 
-        <Grid gap={2} columns={2}>
-          <Button
-            ref={buttonRef}
-            formAction={handleCreateDomain}
-            state={isPending ? "pending" : undefined}
-            color={isOpen ? "primary" : "neutral"}
-            onClick={(event) => {
-              if (isOpen === false) {
-                setIsOpen(true);
-                event.preventDefault();
-                return;
-              }
-            }}
-          >
-            {isOpen ? "Add domain" : "Add a new domain"}
-          </Button>
-
-          <Button
-            color={"dark"}
-            prefix={<TerminalIcon />}
-            type="button"
-            onClick={onExportClick}
-          >
-            Export
-          </Button>
-        </Grid>
-      </Flex>
-      {isOpen && <Separator css={{ mb: theme.spacing[5] }} />}
-    </>
+        <Button
+          color={"dark"}
+          prefix={<TerminalIcon />}
+          type="button"
+          onClick={onExportClick}
+        >
+          Export
+        </Button>
+      </Grid>
+    </Flex>
   );
 };

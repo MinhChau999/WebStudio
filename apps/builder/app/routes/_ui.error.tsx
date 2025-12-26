@@ -1,20 +1,9 @@
 import { type LoaderFunctionArgs } from "@remix-run/server-runtime";
 import { type MetaFunction } from "@remix-run/react";
-import { builderSessionStorage } from "~/services/builder-session.server";
-import { sessionStorage } from "~/services/session.server";
-import { authenticator } from "~/services/auth.server";
-import { builderAuthenticator } from "~/services/builder-auth.server";
-import { z } from "zod";
 import { preventCrossOriginCookie } from "~/services/no-cross-origin-cookie";
-import { isBuilder } from "~/shared/router-utils";
 export { ErrorBoundary } from "~/shared/error/error-boundary";
 
-const SessionError = z.object({
-  message: z.string(),
-  description: z.string().optional(),
-});
-
-export const meta: MetaFunction<typeof loader> = () => {
+export const meta: MetaFunction = () => {
   const metas: ReturnType<MetaFunction> = [];
 
   metas.push({ title: "Webstudio Error" });
@@ -73,32 +62,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
   }
 
-  const storage = isBuilder(request) ? builderSessionStorage : sessionStorage;
-  const sessionErrorKey = isBuilder(request)
-    ? builderAuthenticator.sessionErrorKey
-    : authenticator.sessionErrorKey;
-
-  const session = await storage.getSession(request.headers.get("Cookie"));
-
-  const rawError = session.get(sessionErrorKey);
-
-  const parsedError = SessionError.safeParse(rawError);
-
-  const error = parsedError.success
-    ? parsedError.data
-    : {
-        message: "Unknown error",
-        description: "",
-      };
-
-  throw new Response(JSON.stringify(error), {
-    status: 400,
-    headers: {
-      "Content-Type": "application/json",
-      // Clear the error from the session
-      "Set-Cookie": await storage.commitSession(session),
-    },
-  });
+  throw new Response(
+    JSON.stringify({
+      message: "Unknown error",
+      description: "",
+    }),
+    {
+      status: 400,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
 };
 
 export default function Error() {
