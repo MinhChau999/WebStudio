@@ -6,6 +6,7 @@ import { createContext } from "~/shared/context.server";
 import { createOrLoginWithDev } from "~/shared/db/user.server";
 import { getUserPlanFeatures } from "~/shared/db/user-plan-features.server";
 import type { DashboardData } from "~/dashboard/shared/types";
+import { db } from "@webstudio-is/dashboard/index.server";
 export { ErrorBoundary } from "~/shared/error/error-boundary";
 
 /**
@@ -26,20 +27,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
   );
 
   // Fetch all projects (without auth filtering for simplified local setup)
-  const projectsResult = await context.postgrest.client
-    .from("DashboardProject")
-    .select("*, previewImageAsset:Asset (*), latestBuildVirtual (*)")
-    .eq("userId", user.id)
-    .eq("isDeleted", false)
-    .order("createdAt", { ascending: false })
-    .order("id", { ascending: false });
-
-  if (projectsResult.error) {
-    console.error("Error fetching projects:", projectsResult.error);
-    throw new Error("Failed to fetch projects");
-  }
-
-  const projects = projectsResult.data || [];
+  const projects = await db.db.findMany(user.id, context);
 
   // For templates, we'll use the same projects for now
   // In production, templates would be fetched from a separate source
@@ -54,7 +42,6 @@ export const loader = async (args: LoaderFunctionArgs) => {
     userPlanFeatures: {
       ...userPlanFeatures,
       // Enable all features for local development
-      maxProjects: Number.MAX_SAFE_INTEGER,
       maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
       maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
       maxContactEmails: Number.MAX_SAFE_INTEGER,

@@ -92,7 +92,7 @@ export const CanvasIframe = forwardRef<HTMLIFrameElement, CanvasIframeProps>(
       <>
         <iframe
           {...props}
-          ref={merrgedRef}
+          ref={merrgedRef as any}
           className={iframeStyle()}
           credentialless="true"
         />

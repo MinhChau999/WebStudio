@@ -89,9 +89,14 @@ export const loader = async (loaderArgs: LoaderFunctionArgs) => {
         authPermit: "own", // All projects owned by admin
         userPlanFeatures: {
           // Enable all features for single admin
-          aiAssistants: true,
-          cloneProjects: true,
-          maxProjects: Number.MAX_SAFE_INTEGER,
+          allowShareAdminLinks: true,
+          allowDynamicData: true,
+          maxContactEmails: Number.MAX_SAFE_INTEGER,
+          maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
+          maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
+          hasSubscription: true,
+          hasProPlan: true,
+          planName: "Admin",
         },
         authTokenPermissions: {
           canEdit: true,

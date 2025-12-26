@@ -1,6 +1,6 @@
 import { lazy } from "react";
 import type { LoaderFunctionArgs } from "@remix-run/server-runtime";
-import { Scripts, ScrollRestoration } from "@remix-run/react";
+import { Meta, Links, Scripts, ScrollRestoration } from "@remix-run/react";
 import { isCanvas } from "~/shared/router-utils";
 import { ClientOnly } from "~/shared/client-only";
 
@@ -22,18 +22,22 @@ const Canvas = lazy(async () => {
 
 const CanvasRoute = () => {
   return (
-    // this setup remix scripts on canvas and after rendering a website
-    // scripts will continue to work even though removed from dom
-    <ClientOnly
-      fallback={
-        <body>
-          <Scripts />
-          <ScrollRestoration />
-        </body>
-      }
-    >
-      <Canvas />
-    </ClientOnly>
+    <html lang="en">
+      <head>
+        <Meta />
+        <Links />
+      </head>
+      <ClientOnly
+        fallback={
+          <body>
+            <Scripts />
+            <ScrollRestoration />
+          </body>
+        }
+      >
+        <Canvas />
+      </ClientOnly>
+    </html>
   );
 };
 

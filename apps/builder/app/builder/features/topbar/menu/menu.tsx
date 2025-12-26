@@ -17,7 +17,6 @@ import {
 import {
   $isCloneDialogOpen,
   $isShareDialogOpen,
-  $publishDialog,
   $remoteDialog,
 } from "~/builder/shared/nano-states";
 import { cloneProjectUrl, dashboardUrl } from "~/shared/router-utils";
@@ -64,13 +63,7 @@ export const Menu = () => {
   const authToken = useStore($authToken);
   const isDesignMode = useStore($isDesignMode);
 
-  const isPublishEnabled = authPermit === "own" || authPermit === "admin";
-
   const isShareEnabled = authPermit === "own";
-
-  const disabledPublishTooltipContent = isPublishEnabled
-    ? undefined
-    : "Only owner or admin can publish projects";
 
   const disabledShareTooltipContent = isShareEnabled
     ? undefined
@@ -168,42 +161,6 @@ export const Menu = () => {
             disabled={isShareEnabled === false}
           >
             Share
-          </DropdownMenuItem>
-        </Tooltip>
-
-        <Tooltip
-          side="right"
-          sideOffset={10}
-          content={disabledPublishTooltipContent}
-        >
-          <DropdownMenuItem
-            onSelect={() => {
-              $publishDialog.set("publish");
-            }}
-            disabled={isPublishEnabled === false}
-          >
-            Publish
-            <DropdownMenuItemRightSlot>
-              <Kbd value={["shift", "P"]} />
-            </DropdownMenuItemRightSlot>
-          </DropdownMenuItem>
-        </Tooltip>
-
-        <Tooltip
-          side="right"
-          sideOffset={10}
-          content={disabledPublishTooltipContent}
-        >
-          <DropdownMenuItem
-            onSelect={() => {
-              $publishDialog.set("export");
-            }}
-            disabled={isPublishEnabled === false}
-          >
-            Export
-            <DropdownMenuItemRightSlot>
-              <Kbd value={["shift", "E"]} />
-            </DropdownMenuItemRightSlot>
           </DropdownMenuItem>
         </Tooltip>
 
