@@ -2,7 +2,7 @@ const crypto = require('crypto');
 
 // --- CẤU HÌNH ---
 // Thay đổi secret này GIỐNG HỆT với PGRST_JWT_SECRET trong docker-compose.yaml
-const SECRET = "myverysecuresecretthatisatleast32characterslong"; 
+const SECRET = "56b850d1ed42a5bb10a73f31863bb8f024121eb99f0c9675be267b04d4d7abe9";
 
 // --- Đừng sửa phần dưới này trừ khi bạn biết mình đang làm gì ---
 function sign(payload, secret) {
