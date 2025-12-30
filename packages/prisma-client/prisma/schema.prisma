@@ -57,127 +57,34 @@ model Asset {
 }
 
 model User {
-  id               String             @id @default(uuid())
-  email            String?            @unique
-  provider         String?
-  image            String?
-  username         String?
-  createdAt        DateTime           @default(now()) @db.Timestamptz(3)
-  team             Team?              @relation(fields: [teamId], references: [id])
-  teamId           String?
-  projects         Project[]
-  projectsTags     Json               @default("[]")
-  clientReferences ClientReferences[]
-  checkout         TransactionLog[]
-  products         UserProduct[]
-}
-
-// User client references in external services like stripe etc
-model ClientReferences {
-  reference String   @default(dbgenerated())
-  service   String
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-
-  @@id([userId, service])
-  @@unique([reference, service])
-}
-
-model Product {
-  id          String   @id
-  name        String
-  description String?
-  features    String[]
-  images      String[]
-  meta        Json
-
-  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
-  checkout     TransactionLog[]
-  userProducts UserProduct[]
-}
-
-model TransactionLog {
-  // Stripe event id (debug and idempotency purposes)
-  eventId String  @id
-  userId  String?
-  user    User?   @relation(fields: [userId], references: [id])
-
-  productId String?
-  product   Product? @relation(fields: [productId], references: [id])
-
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-
-  eventData Json? @default(dbgenerated())
-
-  eventType    String? @default(dbgenerated())
-  eventCreated Int?    @default(dbgenerated())
-
-  // paid
-  status String? @default(dbgenerated())
-
-  customerId    String? @default(dbgenerated())
-  customerEmail String? @default(dbgenerated())
-
-  subscriptionId String? @default(dbgenerated())
-
-  // Used for Refund
-  paymentIntent String? @default(dbgenerated())
-
-  @@unique([eventId, productId])
-}
-
-view UserProduct {
-  userId         String
-  user           User    @relation(fields: [userId], references: [id])
-  productId      String
-  product        Product @relation(fields: [productId], references: [id])
-  // subscriptionId and customerId not null for subscriptions
-  subscriptionId String?
-  customerId     String?
-  // Easier to debug
-  customerEmail  String?
-
-  @@unique([userId, productId])
+  id           String   @id @default(uuid())
+  email        String?  @unique
+  provider     String?
+  image        String?
+  username     String?
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+  team         Team?    @relation(fields: [teamId], references: [id])
+  teamId       String?
+  projects     Project[]
+  projectsTags Json     @default("[]")
 }
 
 model Project {
-  id                        String                       @id @default(uuid())
-  createdAt                 DateTime                     @default(now()) @db.Timestamptz(3)
-  title                     String
+  id                  String                       @id @default(uuid())
+  createdAt           DateTime                     @default(now()) @db.Timestamptz(3)
+  title               String
   // Tag ids used in User.projectTags
-  tags                      String[]
-  domain                    String                       @unique
-  user                      User?                        @relation(fields: [userId], references: [id])
-  userId                    String?
-  build                     Build[]
-  isDeleted                 Boolean                      @default(false)
-  files                     File[]
-  projectDomain             ProjectDomain[]
-  authorizationToken        AuthorizationToken[]
-  previewImageAsset         Asset?                       @relation(fields: [previewImageAssetId, id], references: [id, projectId])
-  previewImageAssetId       String?
-  marketplaceApprovalStatus MarketplaceApprovalStatus    @default(UNLISTED)
-  latestStaticBuild         LatestStaticBuildPerProject?
+  tags                String[]
+  user                User?                        @relation(fields: [userId], references: [id])
+  userId              String?
+  build               Build[]
+  isDeleted           Boolean                      @default(false)
+  files               File[]
+  previewImageAsset   Asset?                       @relation(fields: [previewImageAssetId, id], references: [id, projectId])
+  previewImageAssetId String?
+  latestStaticBuild   LatestStaticBuildPerProject?
 
   @@unique([id, isDeleted])
-  @@unique([domain, isDeleted])
-  @@unique([id, domain])
-  // ApprovedMarketplaceProduct view performance index
-  @@index([isDeleted, marketplaceApprovalStatus])
-}
-
-enum PublishStatus {
-  PENDING
-  PUBLISHED
-  FAILED
-}
-
-enum MarketplaceApprovalStatus {
-  UNLISTED
-  PENDING
-  APPROVED
-  REJECTED
 }
 
 model Build {
@@ -200,111 +107,33 @@ model Build {
   dataSources           String @default("[]")
   resources             String @default("[]")
   instances             String @default("[]")
-  marketplaceProduct    String @default("{}")
-
-  deployment    String?
-  publishStatus PublishStatus @default(PENDING)
 
   latestStaticBuildPerProject LatestStaticBuildPerProject?
 
   @@id([id, projectId])
-  // ApprovedMarketplaceProduct view performance index
   @@index([projectId, createdAt(sort: Desc)])
 }
 
-enum AuthorizationRelation {
-  viewers
-  editors
-  builders
-  administrators
-}
+// View representing the latest static build for each project
+view LatestStaticBuildPerProject {
+  buildId   String
+  build     Build    @relation(fields: [buildId, projectId], references: [id, projectId])
 
-model AuthorizationToken {
-  token     String                @default(uuid())
-  projectId String
-  project   Project               @relation(fields: [projectId], references: [id])
-  name      String                @default("")
-  relation  AuthorizationRelation @default(viewers)
-  createdAt DateTime              @default(now()) @db.Timestamptz(3)
-
-  canClone Boolean @default(true)
-  canCopy  Boolean @default(true)
-
-  @@id([token, projectId])
-  @@unique([token])
-}
-
-enum DomainStatus {
-  INITIALIZING
-  ACTIVE
-  ERROR
-  PENDING
-}
-
-// Domains  + last known status and last known txtRecord
-// In the future we can update this table using queue, n8n or temporal workflows.
-// As of now updates are done during UI interactions
-model Domain {
-  id        String   @id @default(uuid())
-  domain    String   @unique
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
-
-  ProjectDomain ProjectDomain[]
-  // Last known txtRecord of the domain (to check domain ownership)
-  txtRecord     String?
-  // create, init, pending, active, error
-  status        DomainStatus    @default(INITIALIZING)
-  // In case of status="error", this will contain the error message
-  error         String?
-}
-
-model ProjectDomain {
   projectId String
   project   Project  @relation(fields: [projectId], references: [id])
-  domainId  String
-  domain    Domain   @relation(fields: [domainId], references: [id])
-  createdAt DateTime @default(now()) @db.Timestamptz(3)
-  // Generated txt record to check domain ownership
-  txtRecord String   @unique @default(uuid())
-
-  // CNAME record to point to the domain
-  cname String
-
-  @@id([projectId, domainId])
-  @@index([domainId])
-}
-
-view LatestStaticBuildPerProject {
-  buildId String
-  build   Build  @relation(fields: [buildId, projectId], references: [id, projectId])
-
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id])
-
-  publishStatus PublishStatus
-  updatedAt     DateTime      @db.Timestamptz(3)
 
   @@id([projectId])
   @@unique([buildId, projectId])
 }
 
-// Dashboard
+// Dashboard view showing non-deleted projects
 view DashboardProject {
-  id                        String                    @id @default(uuid())
-  createdAt                 DateTime                  @default(now()) @db.Timestamptz(3)
-  title                     String
-  domain                    String
-  userId                    String?
-  previewImageAsset         Asset?                    @relation(fields: [previewImageAssetId, id], references: [id, projectId])
-  previewImageAssetId       String?
-  isDeleted                 Boolean                   @default(false)
-  isPublished               Boolean
-  marketplaceApprovalStatus MarketplaceApprovalStatus @default(UNLISTED)
-}
-
-view ApprovedMarketplaceProduct {
-  projectId          String  @id
-  marketplaceProduct String
-  authorizationToken String?
+  id                  String   @id
+  createdAt           DateTime @db.Timestamptz(3)
+  title               String
+  userId              String?
+  projectId           String
+  previewImageAsset   Asset?   @relation(fields: [previewImageAssetId, id], references: [id, projectId])
+  previewImageAssetId String?
+  isDeleted           Boolean
 }
