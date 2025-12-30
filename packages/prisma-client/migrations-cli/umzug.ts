@@ -8,7 +8,7 @@ export const umzug = new Umzug({
   migrations: {
     glob: [
       `./${"[0-9]".repeat(14)}_*`,
-      { cwd: prismaMigrations.migrationsDir },
+      { cwd: prismaMigrations.migrationsDir, onlyFiles: false },
     ],
     resolve(params) {
       const sqlFilePath = prismaMigrations.getMigrationFilePath(
