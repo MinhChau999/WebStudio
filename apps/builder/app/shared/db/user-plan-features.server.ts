@@ -12,12 +12,74 @@ export const getUserPlanFeatures = async (
     .select("customerId, subscriptionId, productId")
     .eq("userId", userId);
 
+  // If UserProduct table doesn't exist (PGRST205 = table not found), use env-based plan
   if (userProductsResult.error) {
-    console.error(userProductsResult.error);
-    throw new Error("Failed to fetch user products");
+    if (
+      userProductsResult.error.code === "PGRST205" ||
+      userProductsResult.error.code === "PGRST116"
+    ) {
+      // Table doesn't exist, use env-based plan
+      console.log("UserProduct table not found, using default plan");
+
+      // Return immediately with env-based plan
+      if (env.USER_PLAN === "pro") {
+        return {
+          allowShareAdminLinks: true,
+          allowDynamicData: true,
+          maxContactEmails: 5,
+          maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
+          maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
+          hasSubscription: true,
+          hasProPlan: true,
+          planName: "env.USER_PLAN Pro",
+        };
+      }
+
+      return {
+        allowShareAdminLinks: false,
+        allowDynamicData: false,
+        maxContactEmails: 0,
+        maxDomainsAllowedPerUser: 0,
+        maxPublishesAllowedPerUser: 10,
+        hasSubscription: false,
+        hasProPlan: false,
+      };
+    }
+
+    // For other errors, log and throw to surface the issue
+    console.error("Error fetching UserProduct:", userProductsResult.error);
+    throw new Error(
+      `Failed to fetch user products: ${userProductsResult.error.message}`
+    );
   }
 
-  const userProducts = userProductsResult.data;
+  const userProducts = userProductsResult.data ?? [];
+
+  // No UserProduct records for this user, use env-based plan
+  if (userProducts.length === 0) {
+    if (env.USER_PLAN === "pro") {
+      return {
+        allowShareAdminLinks: true,
+        allowDynamicData: true,
+        maxContactEmails: 5,
+        maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
+        maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
+        hasSubscription: true,
+        hasProPlan: true,
+        planName: "env.USER_PLAN Pro",
+      };
+    }
+
+    return {
+      allowShareAdminLinks: false,
+      allowDynamicData: false,
+      maxContactEmails: 0,
+      maxDomainsAllowedPerUser: 0,
+      maxPublishesAllowedPerUser: 10,
+      hasSubscription: false,
+      hasProPlan: false,
+    };
+  }
 
   const productsResult = await postgrest.client
     .from("Product")
@@ -29,12 +91,23 @@ export const getUserPlanFeatures = async (
 
   if (productsResult.error) {
     console.error(productsResult.error);
-    throw new Error("Failed to fetch products");
+    // If Product table doesn't exist, return default pro plan for users with UserProduct records
+    return {
+      allowShareAdminLinks: true,
+      allowDynamicData: true,
+      maxContactEmails: 5,
+      maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
+      maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
+      hasSubscription: userProducts.some((log) => log.subscriptionId !== null),
+      hasProPlan: true,
+      planName: "User",
+    };
   }
 
   const products = productsResult.data;
 
-  if (userProducts.length > 0) {
+  // UserProduct records exist and have valid Product data
+  if (products.length > 0) {
     const hasSubscription = userProducts.some(
       (log) => log.subscriptionId !== null
     );
@@ -68,26 +141,15 @@ export const getUserPlanFeatures = async (
     };
   }
 
-  if (env.USER_PLAN === "pro") {
-    return {
-      allowShareAdminLinks: true,
-      allowDynamicData: true,
-      maxContactEmails: 5,
-      maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
-      maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
-      hasSubscription: true,
-      hasProPlan: true,
-      planName: "env.USER_PLAN Pro",
-    };
-  }
-
+  // Fallback for users with UserProduct but no Product records
   return {
-    allowShareAdminLinks: false,
-    allowDynamicData: false,
-    maxContactEmails: 0,
-    maxDomainsAllowedPerUser: 0,
-    maxPublishesAllowedPerUser: 10,
-    hasSubscription: false,
-    hasProPlan: false,
+    allowShareAdminLinks: true,
+    allowDynamicData: true,
+    maxContactEmails: 5,
+    maxDomainsAllowedPerUser: Number.MAX_SAFE_INTEGER,
+    maxPublishesAllowedPerUser: Number.MAX_SAFE_INTEGER,
+    hasSubscription: userProducts.some((log) => log.subscriptionId !== null),
+    hasProPlan: true,
+    planName: "User",
   };
 };
