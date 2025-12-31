@@ -123,7 +123,7 @@ export const findManyByIds = async (
   }
   const data = await context.postgrest.client
     .from("DashboardProject")
-    .select("*, previewImageAsset:Asset (*), latestBuildVirtual (*)")
+    .select("*, previewImageAsset:Asset (*)")
     .in("id", projectIds)
     .eq("isDeleted", false)
     .order("createdAt", { ascending: false })

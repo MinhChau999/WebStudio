@@ -29,7 +29,7 @@ export type Build = {
   dataSources: [DataSource["id"], DataSource][];
   resources: [Resource["id"], Resource][];
   deployment?: Deployment | undefined;
-  marketplaceProduct: MarketplaceProduct;
+  marketplaceProduct: MarketplaceProduct | null;
 };
 
 export type CompactBuild = {
@@ -47,6 +47,6 @@ export type CompactBuild = {
   dataSources: DataSource[];
   resources: Resource[];
   instances: Instance[];
-  deployment?: Deployment;
-  marketplaceProduct: MarketplaceProduct;
+  deployment?: Deployment | null;
+  marketplaceProduct: MarketplaceProduct | null;
 };

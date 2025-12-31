@@ -62,7 +62,12 @@ export const serializeData = <Type extends { id: string }>(
   return JSON.stringify(dataSourcesList);
 };
 
-export const parseConfig = <Type>(string: string): Type => {
+export const parseConfig = <Type>(
+  string: string | null | undefined
+): Type | null => {
+  if (string === null || string === undefined) {
+    return null;
+  }
   return JSON.parse(string);
 };
 

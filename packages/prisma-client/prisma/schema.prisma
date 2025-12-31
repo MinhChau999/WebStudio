@@ -28,6 +28,12 @@ enum UploadStatus {
   UPLOADED
 }
 
+enum PublishStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
 model File {
   name              String       @id
   format            String
@@ -57,22 +63,24 @@ model Asset {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String?  @unique
-  provider     String?
-  image        String?
-  username     String?
-  createdAt    DateTime @default(now()) @db.Timestamptz(3)
-  team         Team?    @relation(fields: [teamId], references: [id])
-  teamId       String?
-  projects     Project[]
-  projectsTags Json     @default("[]")
+  id            String       @id @default(uuid())
+  email         String?      @unique
+  provider      String?
+  image         String?
+  username      String?
+  createdAt     DateTime     @default(now()) @db.Timestamptz(3)
+  team          Team?        @relation(fields: [teamId], references: [id])
+  teamId        String?
+  projects      Project[]
+  projectsTags  Json         @default("[]")
+  userProducts  UserProduct[]
 }
 
 model Project {
   id                  String                       @id @default(uuid())
   createdAt           DateTime                     @default(now()) @db.Timestamptz(3)
   title               String
+  domain              String                       @unique
   // Tag ids used in User.projectTags
   tags                String[]
   user                User?                        @relation(fields: [userId], references: [id])
@@ -83,6 +91,7 @@ model Project {
   previewImageAsset   Asset?                       @relation(fields: [previewImageAssetId, id], references: [id, projectId])
   previewImageAssetId String?
   latestStaticBuild   LatestStaticBuildPerProject?
+  projectDomains      ProjectDomain[]
 
   @@unique([id, isDeleted])
 }
@@ -114,26 +123,87 @@ model Build {
   @@index([projectId, createdAt(sort: Desc)])
 }
 
-// View representing the latest static build for each project
-view LatestStaticBuildPerProject {
-  buildId   String
-  build     Build    @relation(fields: [buildId, projectId], references: [id, projectId])
 
+
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  meta            Json          @default("{}")
+  userProducts    UserProduct[]
+}
+
+model UserProduct {
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  productId      String
+  product        Product       @relation(fields: [productId], references: [id])
+  // subscriptionId and customerId not null for subscriptions
+  subscriptionId String?
+  customerId     String?
+  // Easier to debug
+  customerEmail  String?
+
+  @@unique([userId, productId])
+}
+
+
+
+enum DomainStatus {
+  INITIALIZING
+  ACTIVE
+  ERROR
+  PENDING
+}
+
+model Domain {
+  id        String   @id @default(uuid())
+  domain    String   @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
+
+  ProjectDomain ProjectDomain[]
+  txtRecord     String?
+  status        DomainStatus    @default(INITIALIZING)
+  error         String?
+}
+
+model ProjectDomain {
   projectId String
   project   Project  @relation(fields: [projectId], references: [id])
+  domainId  String
+  domain    Domain   @relation(fields: [domainId], references: [id])
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  txtRecord String   @unique @default(uuid())
+  cname String
 
-  @@id([projectId])
-  @@unique([buildId, projectId])
+  @@id([projectId, domainId])
+  @@index([domainId])
 }
 
 // Dashboard view showing non-deleted projects
 view DashboardProject {
-  id                  String   @id
-  createdAt           DateTime @db.Timestamptz(3)
-  title               String
-  userId              String?
-  projectId           String
-  previewImageAsset   Asset?   @relation(fields: [previewImageAssetId, id], references: [id, projectId])
-  previewImageAssetId String?
-  isDeleted           Boolean
+  id                        String                    @id @default(uuid())
+  createdAt                 DateTime                  @default(now()) @db.Timestamptz(3)
+  title                     String
+  domain                    String
+  userId                    String?
+  previewImageAsset         Asset?                    @relation(fields: [previewImageAssetId, id], references: [id, projectId])
+  previewImageAssetId       String?
+  isDeleted                 Boolean                   @default(false)
+}
+
+
+// View representing the latest static build for each project
+view LatestStaticBuildPerProject {
+  buildId       String
+  build         Build    @relation(fields: [buildId, projectId], references: [id, projectId])
+
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+
+  publishStatus PublishStatus
+  updatedAt     DateTime      @db.Timestamptz(3)
+
+  @@id([projectId])
+  @@unique([buildId, projectId])
 }
