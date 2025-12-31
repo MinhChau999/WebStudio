@@ -1,11 +1,7 @@
 /* eslint no-console: ["error", { allow: ["time", "timeEnd"] }] */
 
 import type { Database } from "@webstudio-is/postrest/index.server";
-import {
-  AuthorizationError,
-  authorizeProject,
-  type AppContext,
-} from "@webstudio-is/trpc-interface/index.server";
+import { type AppContext } from "@webstudio-is/trpc-interface/index.server";
 // Simplified: No authentication - single admin setup
 import type {
   Deployment,

@@ -229,6 +229,9 @@ importers:
       '@webstudio-is/html-data':
         specifier: workspace:*
         version: link:../../packages/html-data
+      '@webstudio-is/http-client':
+        specifier: workspace:*
+        version: link:../../packages/http-client
       '@webstudio-is/icons':
         specifier: workspace:*
         version: link:../../packages/icons
@@ -834,6 +837,31 @@ importers:
         version: link:../tsconfig
 
   packages/prisma-client:
+    dependencies:
+      nanoid:
+        specifier: ^5.1.5
+        version: 5.1.6
+      tinyexec:
+        specifier: ^0.3.2
+        version: 0.3.2
+      umzug:
+        specifier: ^3.2.1
+        version: 3.8.2(@types/node@22.19.3)
+    devDependencies:
+      '@prisma/client':
+        specifier: 5.12.1
+        version: 5.12.1(prisma@5.12.1)
+      '@webstudio-is/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      prisma:
+        specifier: 5.12.1
+        version: 5.12.1
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+
+  packages/prisma-client-mysql:
     dependencies:
       nanoid:
         specifier: ^5.1.5

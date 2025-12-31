@@ -1,0 +1,8 @@
+{
+  "extends": "@webstudio-is/tsconfig/base.json",
+  "compilerOptions": {
+    "outDir": "../src/__generated__",
+    "rootDir": "."
+  },
+  "include": ["./prisma"]
+}

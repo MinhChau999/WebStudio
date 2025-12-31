@@ -1,0 +1,206 @@
+// This is your Prisma schema file for MySQL,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+  output          = "../src/__generated__"
+
+  binaryTargets = env("PRISMA_BINARY_TARGET")
+}
+
+datasource db {
+  provider  = "mysql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Team {
+  id    String @id @default(uuid())
+  users User[]
+}
+
+enum UploadStatus {
+  UPLOADING
+  UPLOADED
+}
+
+enum PublishStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
+model File {
+  name              String       @id
+  format            String
+  size              Int
+  description       String?
+  createdAt         DateTime     @default(now()) @db.Timestamp(3)
+  updatedAt         DateTime     @default(now()) @updatedAt @db.Timestamp(3)
+  meta              String       @default("{}")
+  status            UploadStatus @default(UPLOADING)
+  isDeleted         Boolean      @default(false)
+  uploaderProject   Project?     @relation(fields: [uploaderProjectId], references: [id])
+  uploaderProjectId String?
+  assets            Asset[]
+}
+
+model Asset {
+  id               String             @default(uuid()) // not unique!
+  projectId        String
+  file             File               @relation(fields: [name], references: [name])
+  name             String
+  filename         String?
+  description      String?
+  Project          Project[]
+  DashboardProject DashboardProject[]
+
+  @@id([id, projectId])
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String?      @unique
+  provider      String?
+  image         String?
+  username      String?
+  createdAt     DateTime     @default(now()) @db.Timestamp(3)
+  team          Team?        @relation(fields: [teamId], references: [id])
+  teamId        String?
+  projects      Project[]
+  projectsTags  Json         @default("[]")
+  userProducts  UserProduct[]
+}
+
+model Project {
+  id                  String                       @id @default(uuid())
+  createdAt           DateTime                     @default(now()) @db.Timestamp(3)
+  title               String
+  domain              String                       @unique
+  // Tag ids used in User.projectTags
+  tags                String[]
+  user                User?                        @relation(fields: [userId], references: [id])
+  userId              String?
+  build               Build[]
+  isDeleted           Boolean                      @default(false)
+  files               File[]
+  previewImageAsset   Asset?                       @relation(fields: [previewImageAssetId, id], references: [id, projectId])
+  previewImageAssetId String?
+  latestStaticBuild   LatestStaticBuildPerProject?
+  projectDomains      ProjectDomain[]
+
+  @@unique([id, isDeleted])
+}
+
+model Build {
+  id                String   @unique @default(uuid())
+  version           Int      @default(0)
+  lastTransactionId String?
+  createdAt         DateTime @default(now()) @db.Timestamp(3)
+  updatedAt         DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  pages String
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String
+
+  breakpoints           String @default("[]")
+  styles                String @default("[]")
+  styleSources          String @default("[]")
+  styleSourceSelections String @default("[]")
+  props                 String @default("[]")
+  dataSources           String @default("[]")
+  resources             String @default("[]")
+  instances             String @default("[]")
+
+  latestStaticBuildPerProject LatestStaticBuildPerProject?
+
+  @@id([id, projectId])
+  @@index([projectId, createdAt(sort: Desc)])
+}
+
+
+
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  meta            Json          @default("{}")
+  userProducts    UserProduct[]
+}
+
+model UserProduct {
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  productId      String
+  product        Product       @relation(fields: [productId], references: [id])
+  // subscriptionId and customerId not null for subscriptions
+  subscriptionId String?
+  customerId     String?
+  // Easier to debug
+  customerEmail  String?
+
+  @@unique([userId, productId])
+}
+
+
+
+enum DomainStatus {
+  INITIALIZING
+  ACTIVE
+  ERROR
+  PENDING
+}
+
+model Domain {
+  id        String   @id @default(uuid())
+  domain    String   @unique
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamp(3)
+
+  ProjectDomain ProjectDomain[]
+  txtRecord     String?
+  status        DomainStatus    @default(INITIALIZING)
+  error         String?
+}
+
+model ProjectDomain {
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  domainId  String
+  domain    Domain   @relation(fields: [domainId], references: [id])
+  createdAt DateTime @default(now()) @db.Timestamp(3)
+  txtRecord String   @unique @default(uuid())
+  cname String
+
+  @@id([projectId, domainId])
+  @@index([domainId])
+}
+
+// Dashboard view showing non-deleted projects
+view DashboardProject {
+  id                        String                    @id @default(uuid())
+  createdAt                 DateTime                  @default(now()) @db.Timestamp(3)
+  title                     String
+  domain                    String
+  userId                    String?
+  previewImageAsset         Asset?                    @relation(fields: [previewImageAssetId, id], references: [id, projectId])
+  previewImageAssetId       String?
+  isDeleted                 Boolean                   @default(false)
+}
+
+
+// View representing the latest static build for each project
+view LatestStaticBuildPerProject {
+  buildId       String
+  build         Build    @relation(fields: [buildId, projectId], references: [id, projectId])
+
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id])
+
+  publishStatus PublishStatus
+  updatedAt     DateTime      @db.Timestamp(3)
+
+  @@id([projectId])
+  @@unique([buildId, projectId])
+}
