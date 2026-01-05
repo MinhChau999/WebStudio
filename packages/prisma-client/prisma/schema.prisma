@@ -92,6 +92,8 @@ model Project {
   previewImageAssetId String?
   latestStaticBuild   LatestStaticBuildPerProject?
   projectDomains      ProjectDomain[]
+  domainsVirtuals     domainsVirtual[]
+  latestBuildVirtuals latestBuildVirtual[] @relation("LatestBuildVirtuals")
 
   @@unique([id, isDeleted])
 }
@@ -117,7 +119,12 @@ model Build {
   resources             String @default("[]")
   instances             String @default("[]")
 
+  deployment     Json?
+  publishStatus  PublishStatus @default(PENDING)
+  isCleaned      Boolean @default(false)
+
   latestStaticBuildPerProject LatestStaticBuildPerProject?
+  latestBuildVirtuals latestBuildVirtual[] @relation("LatestBuildVirtuals")
 
   @@id([id, projectId])
   @@index([projectId, createdAt(sort: Desc)])
@@ -162,6 +169,7 @@ model Domain {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(3)
 
   ProjectDomain ProjectDomain[]
+  domainsVirtuals domainsVirtual[] @relation("DomainsVirtual")
   txtRecord     String?
   status        DomainStatus    @default(INITIALIZING)
   error         String?
@@ -206,4 +214,38 @@ view LatestStaticBuildPerProject {
 
   @@id([projectId])
   @@unique([buildId, projectId])
+}
+
+// Virtual table for PostgREST - domains related to each project
+model domainsVirtual {
+  id                String   @id
+  domainId          String
+  domainRelation    Domain   @relation("DomainsVirtual", fields: [domainId], references: [id])
+  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id])
+  domain            String
+  status            DomainStatus @default(INITIALIZING)
+  error             String?
+  domainTxtRecord   String?
+  expectedTxtRecord String
+  cname             String
+  verified          Boolean  @default(false)
+  createdAt         DateTime @db.Timestamptz(3)
+  updatedAt         DateTime @db.Timestamptz(3)
+
+  latestBuildVirtuals latestBuildVirtual[]
+}
+
+// Virtual table for PostgREST - latest build for each project/domain
+model latestBuildVirtual {
+  buildId           String   @unique
+  build             Build    @relation("LatestBuildVirtuals", fields: [buildId], references: [id])
+  projectId         String   @id
+  project           Project  @relation("LatestBuildVirtuals", fields: [projectId], references: [id])
+  domainsVirtualId  String?
+  domainsVirtual    domainsVirtual? @relation(fields: [domainsVirtualId], references: [id])
+  domain            String
+  createdAt         DateTime @db.Timestamptz(3)
+  updatedAt         DateTime @db.Timestamptz(3) @default(now())
+  publishStatus     String
 }
