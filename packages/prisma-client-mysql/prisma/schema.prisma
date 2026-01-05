@@ -1,0 +1,197 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  // see commands.ts
+  // <output-placeholder-for-migrations>
+  output          = "../src/__generated__"
+  // </output-placeholder-for-migrations>
+
+  binaryTargets = env("PRISMA_BINARY_TARGET")
+}
+
+datasource db {
+  provider  = "mysql"
+  url       = env("DATABASE_URL")
+}
+
+model Team {
+  id    String @id @default(uuid())
+  users User[]
+}
+
+enum UploadStatus {
+  UPLOADING
+  UPLOADED
+}
+
+enum PublishStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
+model File {
+  name              String       @id
+  format            String
+  size              Int
+  description       String?
+  createdAt         DateTime     @default(now()) @db.DateTime(3)
+  updatedAt         DateTime     @default(now()) @updatedAt @db.DateTime(3)
+  meta              String       @default("{}")
+  status            UploadStatus @default(UPLOADING)
+  isDeleted         Boolean      @default(false)
+  uploaderProject   Project?     @relation(fields: [uploaderProjectId], references: [id])
+  uploaderProjectId String?
+  assets            Asset[]
+}
+
+model Asset {
+  id               String             @default(uuid()) // not unique!
+  projectId        String
+  file             File               @relation(fields: [name], references: [name])
+  name             String
+  filename         String?
+  description      String?
+  Project          Project[]
+  // NOTE: Removed DashboardProject relation - view no longer exists
+
+  @@id([id, projectId])
+}
+
+model User {
+  id            String       @id @default(uuid())
+  email         String?      @unique
+  provider      String?
+  image         String?
+  username      String?
+  createdAt     DateTime     @default(now()) @db.DateTime(3)
+  team          Team?        @relation(fields: [teamId], references: [id])
+  teamId        String?
+  projects      Project[]
+  projectsTags  Json         @default("[]")
+  userProducts  UserProduct[]
+}
+
+model Project {
+  id                  String                       @id @default(uuid())
+  createdAt           DateTime                     @default(now()) @db.DateTime(3)
+  title               String
+  domain              String                       @unique
+  // Tag ids used in User.projectTags
+  tags                Json         @default("[]")
+  user                User?                        @relation(fields: [userId], references: [id])
+  userId              String?
+  build               Build[]
+  isDeleted           Boolean                      @default(false)
+  files               File[]
+  previewImageAsset   Asset?                       @relation(fields: [previewImageAssetId, id], references: [id, projectId])
+  previewImageAssetId String?
+  // NOTE: Removed relations to views/virtual tables that are now commented out:
+  // - latestStaticBuild (LatestStaticBuildPerProject view)
+  // - domainsVirtuals (domainsVirtual model)
+  // - latestBuildVirtuals (latestBuildVirtual model)
+  projectDomains      ProjectDomain[]
+
+  @@unique([id, isDeleted])
+}
+
+model Build {
+  id                String   @unique @default(uuid())
+  version           Int      @default(0)
+  lastTransactionId String?
+  createdAt         DateTime @default(now()) @db.DateTime(3)
+  updatedAt         DateTime @default(now()) @updatedAt @db.DateTime(3)
+
+  pages String
+
+  project   Project @relation(fields: [projectId], references: [id])
+  projectId String
+
+  breakpoints           String @default("[]")
+  styles                String @default("[]")
+  styleSources          String @default("[]")
+  styleSourceSelections String @default("[]")
+  props                 String @default("[]")
+  dataSources           String @default("[]")
+  resources             String @default("[]")
+  instances             String @default("[]")
+
+  deployment     Json?
+  publishStatus  PublishStatus @default(PENDING)
+  isCleaned      Boolean @default(false)
+  // NOTE: Removed relations to views/virtual tables that are now commented out:
+  // - latestStaticBuildPerProject (LatestStaticBuildPerProject view)
+  // - latestBuildVirtuals (latestBuildVirtual model)
+
+  @@id([id, projectId])
+  @@index([projectId, createdAt(sort: Desc)])
+}
+
+
+
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  meta            Json          @default("{}")
+  userProducts    UserProduct[]
+}
+
+model UserProduct {
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  productId      String
+  product        Product       @relation(fields: [productId], references: [id])
+  // subscriptionId and customerId not null for subscriptions
+  subscriptionId String?
+  customerId     String?
+  // Easier to debug
+  customerEmail  String?
+
+  @@unique([userId, productId])
+}
+
+
+
+enum DomainStatus {
+  INITIALIZING
+  ACTIVE
+  ERROR
+  PENDING
+}
+
+model Domain {
+  id        String   @id @default(uuid())
+  domain    String   @unique
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  updatedAt DateTime @default(now()) @updatedAt @db.DateTime(3)
+
+  ProjectDomain ProjectDomain[]
+  // NOTE: Removed domainsVirtuals relation - model is commented out
+  txtRecord     String?
+  status        DomainStatus    @default(INITIALIZING)
+  error         String?
+}
+
+model ProjectDomain {
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id])
+  domainId  String
+  domain    Domain   @relation(fields: [domainId], references: [id])
+  createdAt DateTime @default(now()) @db.DateTime(3)
+  txtRecord String   @unique @default(uuid())
+  cname String
+
+  @@id([projectId, domainId])
+  @@index([domainId])
+}
+
+// ========================================
+// REMOVED: PostgreSQL-specific Views & Virtual Tables
+// ========================================
+// The following have been removed as they're not compatible with MySQL:
+// - view DashboardProject (use: prisma.project.findMany({ where: { isDeleted: false } }))
+// - view LatestStaticBuildPerProject (see implementation plan for queries)
+// - model domainsVirtual (PostgREST virtual table - implement in app layer)
+// - model latestBuildVirtual (PostgREST virtual table - implement in app layer)
