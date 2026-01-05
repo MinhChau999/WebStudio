@@ -1,17 +1,11 @@
--- CreateEnum
 CREATE TYPE "UploadStatus" AS ENUM ('UPLOADING', 'UPLOADED');
-
--- CreateEnum
 CREATE TYPE "DomainStatus" AS ENUM ('INITIALIZING', 'ACTIVE', 'ERROR', 'PENDING');
 
--- CreateTable
 CREATE TABLE "Team" (
     "id" TEXT NOT NULL,
-
     CONSTRAINT "Team_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
 CREATE TABLE "File" (
     "name" TEXT NOT NULL,
     "format" TEXT NOT NULL,
@@ -23,22 +17,18 @@ CREATE TABLE "File" (
     "status" "UploadStatus" NOT NULL DEFAULT 'UPLOADING',
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "uploaderProjectId" TEXT,
-
     CONSTRAINT "File_pkey" PRIMARY KEY ("name")
 );
 
--- CreateTable
 CREATE TABLE "Asset" (
     "id" TEXT NOT NULL,
     "projectId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "filename" TEXT,
     "description" TEXT,
-
     CONSTRAINT "Asset_pkey" PRIMARY KEY ("id","projectId")
 );
 
--- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
     "email" TEXT,
@@ -48,11 +38,9 @@ CREATE TABLE "User" (
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "teamId" TEXT,
     "projectsTags" JSONB NOT NULL DEFAULT '[]',
-
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
 CREATE TABLE "Project" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -62,11 +50,9 @@ CREATE TABLE "Project" (
     "userId" TEXT,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,
     "previewImageAssetId" TEXT,
-
     CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
 CREATE TABLE "Build" (
     "id" TEXT NOT NULL,
     "version" INTEGER NOT NULL DEFAULT 0,
@@ -83,20 +69,16 @@ CREATE TABLE "Build" (
     "dataSources" TEXT NOT NULL DEFAULT '[]',
     "resources" TEXT NOT NULL DEFAULT '[]',
     "instances" TEXT NOT NULL DEFAULT '[]',
-
     CONSTRAINT "Build_pkey" PRIMARY KEY ("id","projectId")
 );
 
--- CreateTable
 CREATE TABLE "Product" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "meta" JSONB NOT NULL DEFAULT '{}',
-
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
 CREATE TABLE "UserProduct" (
     "userId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
@@ -105,7 +87,6 @@ CREATE TABLE "UserProduct" (
     "customerEmail" TEXT
 );
 
--- CreateTable
 CREATE TABLE "Domain" (
     "id" TEXT NOT NULL,
     "domain" TEXT NOT NULL,
@@ -114,76 +95,37 @@ CREATE TABLE "Domain" (
     "txtRecord" TEXT,
     "status" "DomainStatus" NOT NULL DEFAULT 'INITIALIZING',
     "error" TEXT,
-
     CONSTRAINT "Domain_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
 CREATE TABLE "ProjectDomain" (
     "projectId" TEXT NOT NULL,
     "domainId" TEXT NOT NULL,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "txtRecord" TEXT NOT NULL,
     "cname" TEXT NOT NULL,
-
     CONSTRAINT "ProjectDomain_pkey" PRIMARY KEY ("projectId","domainId")
 );
 
--- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Project_domain_key" ON "Project"("domain");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Project_id_isDeleted_key" ON "Project"("id", "isDeleted");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Build_id_key" ON "Build"("id");
-
--- CreateIndex
 CREATE INDEX "Build_projectId_createdAt_idx" ON "Build"("projectId", "createdAt" DESC);
-
--- CreateIndex
 CREATE UNIQUE INDEX "UserProduct_userId_productId_key" ON "UserProduct"("userId", "productId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Domain_domain_key" ON "Domain"("domain");
-
--- CreateIndex
 CREATE UNIQUE INDEX "ProjectDomain_txtRecord_key" ON "ProjectDomain"("txtRecord");
-
--- CreateIndex
 CREATE INDEX "ProjectDomain_domainId_idx" ON "ProjectDomain"("domainId");
 
--- AddForeignKey
 ALTER TABLE "File" ADD CONSTRAINT "File_uploaderProjectId_fkey" FOREIGN KEY ("uploaderProjectId") REFERENCES "Project"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Asset" ADD CONSTRAINT "Asset_name_fkey" FOREIGN KEY ("name") REFERENCES "File"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_previewImageAssetId_id_fkey" FOREIGN KEY ("previewImageAssetId", "id") REFERENCES "Asset"("id", "projectId") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Build" ADD CONSTRAINT "Build_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "UserProduct" ADD CONSTRAINT "UserProduct_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "UserProduct" ADD CONSTRAINT "UserProduct_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "ProjectDomain" ADD CONSTRAINT "ProjectDomain_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "ProjectDomain" ADD CONSTRAINT "ProjectDomain_domainId_fkey" FOREIGN KEY ("domainId") REFERENCES "Domain"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 DROP VIEW IF EXISTS "DashboardProject";
@@ -239,8 +181,6 @@ CREATE TABLE IF NOT EXISTS "latestBuildVirtual" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "latestBuildVirtual_buildId_key" ON "latestBuildVirtual"("buildId");
 
--- 4. CREATE Functions
--- Create LatestStaticBuildPerProject view
 CREATE OR REPLACE VIEW "LatestStaticBuildPerProject" AS
 SELECT
     b.id AS "buildId",
@@ -305,7 +245,6 @@ RETURNS SETOF "latestBuildVirtual" ROWS 1 AS $$
     LIMIT 1;
 $$ STABLE LANGUAGE sql;
 
--- latestBuildVirtual for domainsVirtual
 CREATE OR REPLACE FUNCTION "latestBuildVirtual"("domainsVirtual")
 RETURNS SETOF "latestBuildVirtual" ROWS 1 AS $$
     SELECT
@@ -324,7 +263,6 @@ RETURNS SETOF "latestBuildVirtual" ROWS 1 AS $$
     LIMIT 1;
 $$ STABLE LANGUAGE sql;
 
--- latestProjectDomainBuildVirtual
 CREATE OR REPLACE FUNCTION "latestProjectDomainBuildVirtual"("Project")
 RETURNS SETOF "latestBuildVirtual" ROWS 1 AS $$
     SELECT
@@ -345,13 +283,11 @@ RETURNS SETOF "latestBuildVirtual" ROWS 1 AS $$
     LIMIT 1;
 $$ STABLE LANGUAGE sql;
 
--- latestBuildVirtual for DashboardProject (wrapper that delegates to Project function)
 CREATE OR REPLACE FUNCTION "latestBuildVirtual"("DashboardProject")
 RETURNS SETOF "latestBuildVirtual" ROWS 1 AS $$
     SELECT * FROM "latestBuildVirtual"((SELECT p FROM "Project" p WHERE p.id = $1.id));
 $$ STABLE LANGUAGE sql;
 
--- 5. Database Cleanup Function
 CREATE OR REPLACE FUNCTION database_cleanup(
   from_date timestamp DEFAULT '2020-01-01 00:00:00',
   to_date timestamp DEFAULT '2099-12-31 23:59:59'
@@ -384,7 +320,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 6. Comments and Permissions
 COMMENT ON TYPE "PublishStatus" IS 'Build publish status: PENDING, PUBLISHED, or FAILED';
 COMMENT ON TABLE "domainsVirtual" IS 'Virtual table representing domains related to each project. Used for PostgREST types.';
 COMMENT ON TABLE "latestBuildVirtual" IS 'Virtual table representing the latest build for each project. Used for PostgREST types.';
